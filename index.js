@@ -13,7 +13,7 @@ server.use('/', routes);
 server.listen(3001, () => {
   console.log("API listening at 3001"); // eslint-disable-line no-console
 })
-/*
+
 nightmare
   .goto(url)
   .wait(15000)
@@ -62,14 +62,15 @@ nightmare
   .then(res => {
     res.pop()
     res.forEach(e => {
-      const match = new Match(e);
-      match.save(function (err, match) {
-        if (err) return console.error(err);
-        console.log(match)
-    });
+      Match.findOrCreate({_id: e._id}, 
+        {host: e.host, guest: e.guest, date: e.date},
+        function(err, match, created) {
+          if (err) return console.error(err);
+          console.log(match)
+          console.log(created)
+      })
   })
   })
   .catch(error => {
     console.error(error)
   })
-*/

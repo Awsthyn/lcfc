@@ -1,5 +1,7 @@
 require("dotenv").config();
 var mongoose = require('mongoose');
+var findOrCreate = require('mongoose-findorcreate')
+
 const { USER, PASSWORD, DB_NAME } = process.env;
 
 const uri = `mongodb+srv://${USER}:${PASSWORD}@cluster0.jsj3e.gcp.mongodb.net/${DB_NAME}?retryWrites=true&w=majority`;
@@ -19,7 +21,9 @@ const matchSchema = new Schema({
     guest: {club: String, score: Number},
     date: { type: Date},
   });
-  const Match = mongoose.model('Match', matchSchema);
 
+matchSchema.plugin(findOrCreate);
 
-  module.exports = {Match}
+const Match = mongoose.model('Match', matchSchema);
+
+module.exports = {Match}
