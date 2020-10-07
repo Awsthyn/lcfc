@@ -1,19 +1,36 @@
 const express = require("express")
 const {Match} = require("./db")
 var moment = require('moment')
-
+const routes = require('./routes/index.js');
 const Nightmare = require('nightmare')
 const nightmare = Nightmare({ show: false })
 
 const url = 'https://www.lcfc.com/matches/results';
+const server = express();
+
+server.use('/', routes);
+
+server.listen(3001, () => {
+  console.log("API listening at 3001"); // eslint-disable-line no-console
+})
 /*
 nightmare
   .goto(url)
   .wait(15000)
   .evaluate(() => {
+    //Último partido se obtiene de una forma particular, al estar renderizado de otra forma.
+    let lastMatch = [
+      document.querySelector('.match-item__team--home').innerText,
+      document.querySelector('.match-item__score--completed').childNodes[1].innerText,
+      document.querySelector('.match-item__team--away').innerText, 
+      document.querySelector('.match-item__score--completed').childNodes[3].innerText,
+      document.querySelector('.highlighted-match').getAttribute("data-match-id"),
+      document.querySelector(".highlighted-match__date").innerText]
 
+    //Resto de los partidos  
     let idNodeList = document.querySelectorAll('.match-item')
     let principalData = Array.from(idNodeList).map(e => {return {_id: e.getAttribute('data-matchid')}})
+    let year =  Array.from(idNodeList).map(e => Number(e.parentElement.parentElement.getAttribute("data-competition-matches-list").slice(-4)))
 
     let dateNodeList = document.querySelectorAll('.match-item__date')
     let dateArray = Array.from(dateNodeList).map(e => e.innerText)
@@ -29,12 +46,17 @@ nightmare
     //let array = [principalData.length, dateArray.length, hostTeamArray.length, guestTeamArray.length, resultsArray.length]
 
     for(let i = 0; i < principalData.length-1; i++){
-      //LastMatch comparte algunas clases con los matches, pero no todas. Por eso se suma +1 o +2 a los i en algunos casos.
+      //LastMatch comparte algunas clases con los matches, pero no todas. Al ocurrir esto, algunos datos se desfasan. Por eso se suma +1 o +2 a los i en algunos casos.
       //En realidad se puede hacer una selección más precisa del DOM.
-      principalData[i].date = moment(dateArray[i],'dddd D MMMM').format('YYYY-MM-DD')
+      principalData[i].date = moment(year[i]+ " " + dateArray[i],'YYYY dddd D MMMM').format('YYYY-MM-DD')
       principalData[i].host = {club: hostTeamArray[i+2], score: resultsArray[i+1].host}
       principalData[i].guest = {club: guestTeamArray[i+2], score: resultsArray[i+1].guest}
     }
+    principalData.unshift({
+      _id: lastMatch[4],
+      host:  {club: lastMatch[0], score: lastMatch[1]},
+      guest: {club: lastMatch[2], score: lastMatch[3]},
+      date: moment(lastMatch[5],  'dddd D MMMM').format('YYYY-MM-DD')})
     return principalData})
   .end()
   .then(res => {
@@ -49,56 +71,5 @@ nightmare
   })
   .catch(error => {
     console.error(error)
-  })
-
-
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  /*
-  nightmare
-  .goto(url)
-  .wait(15000)
-  .evaluate(() => [
-      document.querySelector('.match-item__team--home').innerText,
-      document.querySelector('.match-item__score--completed').childNodes[1].innerText,
-      document.querySelector('.match-item__team--away').innerText, 
-      document.querySelector('.match-item__score--completed').childNodes[3].innerText,
-      document.querySelector('.highlighted-match').getAttribute("data-match-id"),
-      document.querySelector(".highlighted-match__date").innerText])
-  .end()
-  .then(res => {
-      let data = {host: {}, guest: {}}
-      data._id = Number(res[4])
-      data.host.club = res[0]
-      data.host.score = Number(res[1])
-      data.guest.club = res[2]
-      data.guest.score = Number(res[3])
-      data.date = moment(res[5],  'dddd D MMMM').format('YYYY-MM-DD')
-      const lastMatch = new Match(data);
-      lastMatch.save(function (err, lastMatch) {
-        if (err) return console.error(err);
-        console.log(lastMatch)
-      });
-
-
-  })
-  .catch(error => {
-    console.error('Search failed:', error)
   })
 */
