@@ -2,24 +2,20 @@ const Nightmare = require('nightmare')
 const nightmare = Nightmare({ show: true })
 const url = 'https://www.lcfc.com/matches/results';
 
-/*
-got(url)
-.then(html => {
-    setTimeout(() => console.log($('div > span', html.body).length), 15000);
-    //console.log($('.match-item__score match-item__score--completed', html.body) );
-    
-})
-.catch(function(err){
-   console.log(err)
-  })
-*/
-  
+  let data = {}
   nightmare
   .goto(url)
   .wait(15000)
-  .evaluate(() => [document.querySelector('.match-item__score--completed').childNodes[1].innerText, document.querySelector('.match-item__score--completed').childNodes[3].innerText])
+  .evaluate(() => [
+      document.querySelector('.match-item__team--home').innerText,
+      document.querySelector('.match-item__score--completed').childNodes[1].innerText,
+      document.querySelector('.match-item__team--away').innerText, 
+      document.querySelector('.match-item__score--completed').childNodes[3].innerText])
   .end()
-  .then(console.log)
+  .then(res => {
+      data[res[0]] = res[1]
+      data[res[2]] = res[3]
+    console.log(data)  })
   .catch(error => {
     console.error('Search failed:', error)
   })
