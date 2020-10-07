@@ -6,7 +6,7 @@ const Nightmare = require('nightmare')
 const nightmare = Nightmare({ show: false })
 
 const url = 'https://www.lcfc.com/matches/results';
-
+/*
 nightmare
   .goto(url)
   .wait(15000)
@@ -52,7 +52,7 @@ nightmare
   })
 
 
-
+*/
 
 
 
