@@ -1,35 +1,76 @@
-require("dotenv").config();
 const express = require("express")
-var mongoose = require('mongoose');
+const {Match} = require("./db")
 var moment = require('moment')
-
-const { USER, PASSWORD, DB_NAME } = process.env;
-const uri = `mongodb+srv://${USER}:${PASSWORD}@cluster0.jsj3e.gcp.mongodb.net/${DB_NAME}?retryWrites=true&w=majority`;
-mongoose.connect(uri, {useNewUrlParser: true, useUnifiedTopology: true})
-
-var db = mongoose.connection;
-//Bind connection to error event (to get notification of connection errors)
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 const Nightmare = require('nightmare')
 const nightmare = Nightmare({ show: false })
 
-// Define schema
-var Schema = mongoose.Schema;
-
-const matchSchema = new Schema({
-    _id: Number,
-    host:  {club: String, score: Number},
-    guest: {club: String, score: Number},
-    date: { type: Date},
-  });
-  const Match = mongoose.model('Match', matchSchema);
-
-
-
-
 const url = 'https://www.lcfc.com/matches/results';
-/*
+
+nightmare
+  .goto(url)
+  .wait(15000)
+  .evaluate(() => {
+
+    let idNodeList = document.querySelectorAll('.match-item')
+    let principalData = Array.from(idNodeList).map(e => {return {_id: e.getAttribute('data-matchid')}})
+
+    let dateNodeList = document.querySelectorAll('.match-item__date')
+    let dateArray = Array.from(dateNodeList).map(e => e.innerText)
+    
+    let hostTeamNodeList = document.querySelectorAll('.match-item__team--home')
+    let hostTeamArray = Array.from(hostTeamNodeList).map(e => e.innerText)
+
+    let guestTeamNodeList = document.querySelectorAll('.match-item__team--away')
+    let guestTeamArray = Array.from(guestTeamNodeList).map(e => e.innerText)
+
+    let resultsNodeList = document.querySelectorAll('.match-item__score--completed')
+    let resultsArray = Array.from(resultsNodeList).map(e => {return {host: e.childNodes[1].innerText, guest: e.childNodes[3].innerText }})
+    //let array = [principalData.length, dateArray.length, hostTeamArray.length, guestTeamArray.length, resultsArray.length]
+
+    for(let i = 0; i < principalData.length-1; i++){
+      //LastMatch comparte algunas clases con los matches, pero no todas. Por eso se suma +1 o +2 a los i en algunos casos.
+      //En realidad se puede hacer una selección más precisa del DOM.
+      principalData[i].date = moment(dateArray[i],'dddd D MMMM').format('YYYY-MM-DD')
+      principalData[i].host = {club: hostTeamArray[i+2], score: resultsArray[i+1].host}
+      principalData[i].guest = {club: guestTeamArray[i+2], score: resultsArray[i+1].guest}
+    }
+    return principalData})
+  .end()
+  .then(res => {
+    res.pop()
+    res.forEach(e => {
+      const match = new Match(e);
+      match.save(function (err, match) {
+        if (err) return console.error(err);
+        console.log(match)
+    });
+  })
+  })
+  .catch(error => {
+    console.error(error)
+  })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  /*
   nightmare
   .goto(url)
   .wait(15000)
@@ -61,26 +102,3 @@ const url = 'https://www.lcfc.com/matches/results';
     console.error('Search failed:', error)
   })
 */
-
-nightmare
-  .goto(url)
-  .wait(15000)
-  .evaluate(() => {
-    
-    let idNodeList = document.querySelectorAll('.match-item')
-    let dateNodeList = document.querySelectorAll('.match-item__date')
-    let dateArray = Array.from(dateNodeList).map(e => e.innerText)
-    let principalData = Array.from(idNodeList).map(e => {return {_id: e.getAttribute('data-matchid')}})
-    
-    for(let i = 0; i <dateArray.length; i++){
-      principalData[i].date = dateArray[i]
-    }
-    return principalData})
-  .end()
-  .then(res => {
-    console.log(res)
-    //console.log(res.getAttribute('data-competition-matches-list'))
-  })
-  .catch(error => {
-    console.error(error)
-  })
