@@ -68,10 +68,10 @@ nightmare
   .evaluate(() => {
     
     let idNodeList = document.querySelectorAll('.match-item')
-    //let idArray = Array.from(idNodeList)
     let dateNodeList = document.querySelectorAll('.match-item__date')
     let dateArray = Array.from(dateNodeList).map(e => e.innerText)
     let principalData = Array.from(idNodeList).map(e => {return {_id: e.getAttribute('data-matchid')}})
+    
     for(let i = 0; i <dateArray.length; i++){
       principalData[i].date = dateArray[i]
     }
