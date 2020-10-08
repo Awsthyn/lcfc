@@ -66,7 +66,8 @@ server.get("/rangedate", passport.authenticate("jwt",{session:false}), (req, res
   let score;
   const minDate = moment(req.query.minDate, "DD-MM-YYYY")
   const maxDate = moment(req.query.maxDate, "DD-MM-YYYY")
-  if(!score) score = 0
+  if(!req.query.score) score = 0
+  else score = req.query.score
 
   try {
       Match.find({ 'date': {$gte: moment(minDate).subtract(1, 'days'), $lt: maxDate}}).sort({date: -1})
@@ -86,5 +87,23 @@ server.get("/rangedate", passport.authenticate("jwt",{session:false}), (req, res
     console.error(error.message);
   }
 });
+
+
+  //POST
+  server.post("/", passport.authenticate("jwt",{session:false}), (req, res, next) => {
+    const {host, guest} = req.body
+    const date =  moment.utc(req.body.date, "DD-MM-YYYY")//agrego método UTC para homogeneizar los resgistros en la DB.
+    //Si no hago esto, las queryes de búsquedas andan mal.
+    try {
+      let newMatch = new Match({host, guest, date, _id: Date.now()})
+        newMatch.save(req.query.id)
+        .then((data)=>{
+            res.status(200)
+            res.json(data)
+        })
+    } catch (error) {
+      console.error(error.message);
+    }
+  });
 
 module.exports = server;

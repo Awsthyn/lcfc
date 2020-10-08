@@ -1,9 +1,9 @@
 const server = require("express").Router();
 const {User} = require("../models/User")
-const JWT = require("jsonwebtoken")
 
 const passport = require("passport")
 const passportConfig = require("../passport")
+const JWT = require("jsonwebtoken")
 
 const signToken = userID =>{
     return JWT.sign({
@@ -19,7 +19,6 @@ server.post("/register", (req,res)=>{
     .then(user => {
         if(user) res.status(400).json("Usuario existente")
         else {
-            console.log(username)
             const newUser = new User({username,password})
             newUser.save()
             res.status(201).json("Usuario creado")
