@@ -5,7 +5,7 @@ const { USER, PASSWORD, DB_NAME } = process.env;
 
 const uri = `mongodb+srv://${USER}:${PASSWORD}@cluster0.jsj3e.gcp.mongodb.net/${DB_NAME}?retryWrites=true&w=majority`;
 
-mongoose.connect(uri, {useNewUrlParser: true, useUnifiedTopology: true})
+mongoose.connect(uri, {useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true})
 var db = mongoose.connection;
 
 //Bind connection to error event (to get notification of connection errors)

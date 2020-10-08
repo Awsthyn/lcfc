@@ -57,8 +57,6 @@ nightmare
         {host: e.host, guest: e.guest, date: e.date},
         function(err, match, created) {
           if (err) return console.error(err);
-          console.log(match)
-          console.log(created)
       })
   })
   })
