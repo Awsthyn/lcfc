@@ -1,6 +1,5 @@
 require("dotenv").config();
 var mongoose = require('mongoose');
-var findOrCreate = require('mongoose-findorcreate')
 
 const { USER, PASSWORD, DB_NAME } = process.env;
 
@@ -15,15 +14,4 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 // Define schema
 var Schema = mongoose.Schema;
 
-const matchSchema = new Schema({
-    _id: Number,
-    host:  {club: String, score: Number},
-    guest: {club: String, score: Number},
-    date: { type: Date},
-  });
-
-matchSchema.plugin(findOrCreate);
-
-const Match = mongoose.model('Match', matchSchema);
-
-module.exports = {Match}
+module.exports = {mongoose, Schema}
