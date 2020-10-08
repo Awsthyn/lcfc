@@ -1,9 +1,12 @@
 const server = require("express").Router();
-const {Match} = require("../db")
+const {Match} = require("../models/Match");
 var moment = require('moment');
 
+const passport = require("passport")
+const passportConfig = require("../passport")
+
 //GET Resultado del último partido
-  server.get("/last", (req, res, next) => {
+  server.get("/last", passport.authenticate("jwt",{session:false}), (req, res, next) => {
     try {
         Match.find().sort({date: -1}).limit(1)
         .then((data)=>{
@@ -16,7 +19,7 @@ var moment = require('moment');
   });
 
   //GET Resultado de un partido en particular por id
-  server.get("/", (req, res, next) => {
+  server.get("/", passport.authenticate("jwt",{session:false}), (req, res, next) => {
     try {
         Match.findById(req.query.id)
         .then((data)=>{
@@ -29,7 +32,7 @@ var moment = require('moment');
   });
 
 //GET Resultado de un partido en particular por fecha
-server.get("/date", (req, res, next) => {
+server.get("/date", passport.authenticate("jwt",{session:false}), (req, res, next) => {
     const {date} = req.query
     let parsedDate = moment(date, "DD-MM-YYYY")
 
@@ -45,7 +48,7 @@ server.get("/date", (req, res, next) => {
 });
 
 //GET Resultado de los últimos 50 partidos
-server.get("/last50", (req, res, next) => {
+server.get("/last50", passport.authenticate("jwt",{session:false}), (req, res, next) => {
   try {
       Match.find().sort({date: -1}).limit(50)
       .then((data)=>{
@@ -59,7 +62,7 @@ server.get("/last50", (req, res, next) => {
 
 //si query.score == 0  => GET Partidos por intervalo de fecha
 //si query.score == 1 => GET para obtener los puntos que tiene Leicester por un rango de fechas
-server.get("/rangedate", (req, res, next) => {
+server.get("/rangedate", passport.authenticate("jwt",{session:false}), (req, res, next) => {
   let score;
   const minDate = moment(req.query.minDate, "DD-MM-YYYY")
   const maxDate = moment(req.query.maxDate, "DD-MM-YYYY")
